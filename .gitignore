@@ -1,0 +1,19 @@
+# Entorno virtual
+venv/
+
+# Archivos compilados de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de configuración locales
+*.sqlite3
+*.db
+instance/
+.env
+
+# Archivos de IDE
+.vscode/
+.idea/
+*.swp
