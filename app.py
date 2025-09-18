@@ -14,21 +14,32 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
-# -------------------
-# MODELO USUARIO
-# -------------------
+# ------------------- MODELOS -------------------
 class Usuario(db.Model):
     __tablename__ = "Usuario"
     id_Usuario = db.Column(db.Integer, primary_key=True)
     nombre_Usuario = db.Column(db.String(100), nullable=False)
     email_Usuario = db.Column(db.String(100), unique=True, nullable=False)
     password_Usuario = db.Column(db.String(200), nullable=False)
-    rol = db.Column(db.Integer, default=0)
+    rol = db.Column(db.Integer, default=0)  # 0=cliente, 1=admin
 
-# -------------------
-# ENDPOINTS
-# -------------------
+class Mesa(db.Model):
+    __tablename__ = "Mesa"
+    id_Mesa = db.Column(db.Integer, primary_key=True)
+    capacidad = db.Column(db.Integer, nullable=False)
+    estado_Mesa = db.Column(db.String(20), default="disponible")
 
+class Reserva(db.Model):
+    __tablename__ = "Reserva"
+    id_Reserva = db.Column(db.Integer, primary_key=True)
+    id_Usuario = db.Column(db.Integer, db.ForeignKey("Usuario.id_Usuario"), nullable=False)
+    id_Mesa = db.Column(db.Integer, db.ForeignKey("Mesa.id_Mesa"), nullable=False)
+    fecha_Reserva = db.Column(db.Date, nullable=False)
+    hora_Reserva = db.Column(db.Time, nullable=False)
+    num_Personas = db.Column(db.Integer, nullable=False)
+    estado_Reserva = db.Column(db.String(20), default="pendiente")
+
+# ------------------- ENDPOINTS USUARIO -------------------
 @app.route("/register", methods=["POST"])
 def register():
     data = request.get_json()
@@ -43,16 +54,10 @@ def register():
         return jsonify({"message": "El correo ya está registrado"}), 400
 
     hashed_pw = generate_password_hash(password)
-    nuevo_usuario = Usuario(
-        nombre_Usuario=nombre,
-        email_Usuario=email,
-        password_Usuario=hashed_pw
-    )
+    nuevo_usuario = Usuario(nombre_Usuario=nombre, email_Usuario=email, password_Usuario=hashed_pw)
     db.session.add(nuevo_usuario)
     db.session.commit()
-
     return jsonify({"message": "Usuario registrado con éxito"}), 201
-
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -65,15 +70,11 @@ def login():
         return jsonify({"message": "Credenciales inválidas"}), 401
 
     token = jwt.encode(
-        {
-            "id_Usuario": usuario.id_Usuario,
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
-        },
+        {"id_Usuario": usuario.id_Usuario, "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
         app.config["SECRET_KEY"],
         algorithm="HS256"
     )
     return jsonify({"token": token})
-
 
 @app.route("/perfil", methods=["GET"])
 def perfil():
@@ -82,7 +83,7 @@ def perfil():
         return jsonify({"message": "Token faltante"}), 403
 
     try:
-        token = token.split(" ")[1]  # formato: "Bearer <token>"
+        token = token.split(" ")[1]
         data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
         usuario = Usuario.query.get(data["id_Usuario"])
         if not usuario:
@@ -97,8 +98,13 @@ def perfil():
         "rol": usuario.rol
     })
 
+# ------------------- BLUEPRINT ADMIN -------------------
+# Importar aquí para evitar circular import
+from admin import admin_bp
+app.register_blueprint(admin_bp)
 
+# ------------------- MAIN -------------------
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
+        db.create_all()  # crea base de datos y tablas si no existen
     app.run(debug=True)
