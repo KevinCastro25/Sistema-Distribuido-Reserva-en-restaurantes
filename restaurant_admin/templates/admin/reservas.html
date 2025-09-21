@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Gestión de Reservas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .navbar h1 {
+            font-size: 24px;
+        }
+        
+        .nav-menu {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        .nav-menu a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .nav-menu a.active {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .btn-logout {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        .admin-header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .admin-header h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .admin-header p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .admin-note {
+            background: #e3f2fd;
+            border: 1px solid #1976d2;
+            color: #1565c0;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .reservas-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-controls select,
+        .filter-controls input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+        }
+        
+        .reservas-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .reservas-table th,
+        .reservas-table td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .reservas-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            position: sticky;
+            top: 0;
+        }
+        
+        .reservas-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-pendiente {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .status-confirmada {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .status-cancelada {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .status-completada {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-small {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .btn-confirm {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-confirm:hover {
+            background: #45a049;
+        }
+        
+        .btn-cancel {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-cancel:hover {
+            background: #da190b;
+        }
+        
+        .btn-complete {
+            background: #2196f3;
+            color: white;
+        }
+        
+        .btn-complete:hover {
+            background: #1976d2;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .message.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #4caf50;
+        }
+        
+        .message.error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #f44336;
+        }
+        
+        .no-reservas {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        
+        .customer-info {
+            color: #555;
+        }
+        
+        .mesa-info {
+            background: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-right: 5px;
+            display: inline-block;
+        }
+        
+        .date-time {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .comments {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        @media (max-width: 768px) {
+            .reservas-table {
+                font-size: 12px;
+            }
+            
+            .reservas-table th,
+            .reservas-table td {
+                padding: 6px 4px;
+            }
+            
+            .filter-controls {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+            
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .nav-menu {
+                gap: 10px;
+            }
+            
+            .comments {
+                max-width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <h1>Panel Admin - Reservas</h1>
+            <div class="nav-menu">
+                <a href="/admin">Usuarios</a>
+                <a href="/admin/mesas">Mesas</a>
+                <a href="/admin/reservas" class="active">Reservas</a>
+            </div>
+            <div class="user-info">
+                <span id="userName">Cargando...</span>
+                <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="admin-header">
+            <h2>Gestión de Reservas</h2>
+            <p>Administra todas las reservas del sistema</p>
+            <div class="admin-note">
+                <strong>Nota:</strong> Las reservas son creadas por los clientes desde otros módulos. Aquí puedes confirmar, cancelar o completar las reservas existentes.
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <h3 id="totalReservas">-</h3>
+                <p>Total Reservas</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="reservasPendientes">-</h3>
+                <p>Pendientes</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="reservasConfirmadas">-</h3>
+                <p>Confirmadas</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="reservasHoy">-</h3>
+                <p>Hoy</p>
+            </div>
+        </div>
+        
+        <div class="reservas-section">
+            <div class="section-header">
+                <h3>Lista de Reservas</h3>
+                <button class="btn-primary" onclick="refreshReservas()">Actualizar</button>
+            </div>
+            
+            <div class="filter-controls">
+                <div>
+                    <label><strong>Estado:</strong></label>
+                    <select id="filtroEstado" onchange="filterReservas()">
+                        <option value="">Todos</option>
+                        <option value="pendiente">Pendientes</option>
+                        <option value="confirmada">Confirmadas</option>
+                        <option value="cancelada">Canceladas</option>
+                        <option value="completada">Completadas</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label><strong>Fecha:</strong></label>
+                    <input type="date" id="filtroFecha" onchange="filterReservas()">
+                </div>
+                
+                <div>
+                    <label><strong>Mesa:</strong></label>
+                    <select id="filtroMesa" onchange="filterReservas()">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+                
+                <button class="btn-primary" onclick="clearFilters()">Limpiar Filtros</button>
+            </div>
+            
+            <div id="message" class="message"></div>
+            
+            <div id="loading" class="loading" style="display: none;">
+                <p>Cargando reservas...</p>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table class="reservas-table" id="reservasTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Mesa</th>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                            <th>Personas</th>
+                            <th>Estado</th>
+                            <th>Comentarios</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reservasTableBody">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="noReservas" class="no-reservas" style="display: none;">
+                <p>No hay reservas registradas</p>
+                <p style="color: #999; font-size: 14px; margin-top: 10px;">Las reservas aparecerán aquí cuando los clientes las realicen</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://127.0.0.1:5000/api';
+        let currentUser = null;
+        let allReservas = [];
+        let allMesas = [];
+        
+        // Verificar autenticación al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadReservas();
+            loadMesas();
+        });
+        
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            if (!token || !user) {
+                window.location.href = '/';
+                return;
+            }
+            
+            currentUser = JSON.parse(user);
+            
+            // Verificar que sea admin
+            if (currentUser.rol < 1) {
+                alert('No tienes permisos de administrador');
+                window.location.href = '/dashboard';
+                return;
+            }
+            
+            document.getElementById('userName').textContent = currentUser.nombre;
+        }
+        
+        async function loadReservas() {
+            const token = localStorage.getItem('token');
+            const loading = document.getElementById('loading');
+            const table = document.getElementById('reservasTable');
+            const noReservas = document.getElementById('noReservas');
+            const message = document.getElementById('message');
+            
+            loading.style.display = 'block';
+            table.style.display = 'none';
+            noReservas.style.display = 'none';
+            message.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_URL}/admin/reservas`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    allReservas = data.reservas;
+                    if (allReservas.length > 0) {
+                        displayReservas(allReservas);
+                        updateStats(allReservas);
+                        table.style.display = 'table';
+                    } else {
+                        noReservas.style.display = 'block';
+                    }
+                } else {
+                    showMessage(data.message, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Error de conexión con el servidor', 'error');
+            }
+            
+            loading.style.display = 'none';
+        }
+        
+        async function loadMesas() {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`${API_URL}/admin/mesas`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    allMesas = data.mesas;
+                    populateMesaFilter();
+                }
+                
+            } catch (error) {
+                console.error('Error loading mesas:', error);
+            }
+        }
+        
+        function populateMesaFilter() {
+            const select = document.getElementById('filtroMesa');
+            select.innerHTML = '<option value="">Todas</option>';
+            
+            allMesas.forEach(mesa => {
+                const option = document.createElement('option');
+                option.value = mesa.id;
+                option.textContent = `Mesa ${mesa.numero}`;
+                select.appendChild(option);
+            });
+        }
+        
+        function displayReservas(reservas) {
+            const tbody = document.getElementById('reservasTableBody');
+            tbody.innerHTML = '';
+            
+            if (reservas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #666; padding: 30px;">No hay reservas que mostrar</td></tr>';
+                return;
+            }
+            
+            reservas.forEach(reserva => {
+                const row = document.createElement('tr');
+                
+                const formatDate = (dateStr) => {
+                    if (!dateStr) return 'N/A';
+                    return new Date(dateStr).toLocaleDateString('es-ES');
+                };
+                
+                row.innerHTML = `
+                    <td>${reserva.id}</td>
+                    <td class="customer-info">
+                        <div style="font-weight: 600;">${reserva.usuario_nombre}</div>
+                        <div style="font-size: 11px; color: #888;">${reserva.usuario_email}</div>
+                    </td>
+                    <td>
+                        <span class="mesa-info">Mesa ${reserva.mesa_numero}</span>
+                        <div style="font-size: 11px; color: #666;">${reserva.mesa_capacidad} personas</div>
+                    </td>
+                    <td class="date-time">${formatDate(reserva.fecha)}</td>
+                    <td class="date-time">${reserva.hora || 'N/A'}</td>
+                    <td style="text-align: center; font-weight: 600;">${reserva.num_personas}</td>
+                    <td>
+                        <span class="status-badge status-${reserva.estado}">${reserva.estado}</span>
+                    </td>
+                    <td class="comments" title="${reserva.comentarios || ''}">${reserva.comentarios || '-'}</td>
+                    <td class="actions">
+                        ${getActionButtons(reserva)}
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        function getActionButtons(reserva) {
+            let buttons = '';
+            
+            switch (reserva.estado) {
+                case 'pendiente':
+                    buttons = `
+                        <button class="btn-small btn-confirm" onclick="updateReservaStatus(${reserva.id}, 'confirmada')" title="Confirmar reserva">
+                            ✓ Confirmar
+                        </button>
+                        <button class="btn-small btn-cancel" onclick="updateReservaStatus(${reserva.id}, 'cancelada')" title="Cancelar reserva">
+                            ✗ Cancelar
+                        </button>
+                    `;
+                    break;
+                case 'confirmada':
+                    buttons = `
+                        <button class="btn-small btn-complete" onclick="updateReservaStatus(${reserva.id}, 'completada')" title="Marcar como completada">
+                            ✓ Completar
+                        </button>
+                        <button class="btn-small btn-cancel" onclick="updateReservaStatus(${reserva.id}, 'cancelada')" title="Cancelar reserva">
+                            ✗ Cancelar
+                        </button>
+                    `;
+                    break;
+                default:
+                    buttons = '<span style="color: #999; font-size: 11px;">Sin acciones</span>';
+            }
+            
+            return buttons;
+        }
+        
+        async function updateReservaStatus(reservaId, nuevoEstado) {
+            const estadoTexto = {
+                'confirmada': 'confirmar',
+                'cancelada': 'cancelar',
+                'completada': 'completar'
+            };
+            
+            if (!confirm(`¿Estás seguro de ${estadoTexto[nuevoEstado]} esta reserva?`)) {
+                return;
+            }
+            
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`${API_URL}/admin/reservas/${reservaId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        estado: nuevoEstado
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage(`Reserva ${estadoTexto[nuevoEstado]}da exitosamente`, 'success');
+                    loadReservas(); // Recargar para mostrar cambios
+                } else {
+                    showMessage('Error: ' + data.message, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Error de conexión', 'error');
+            }
+        }
+        
+        function updateStats(reservas) {
+            const total = reservas.length;
+            const pendientes = reservas.filter(r => r.estado === 'pendiente').length;
+            const confirmadas = reservas.filter(r => r.estado === 'confirmada').length;
+            
+            // Contar reservas de hoy
+            const hoy = new Date().toISOString().split('T')[0];
+            const reservasHoy = reservas.filter(r => r.fecha === hoy).length;
+            
+            document.getElementById('totalReservas').textContent = total;
+            document.getElementById('reservasPendientes').textContent = pendientes;
+            document.getElementById('reservasConfirmadas').textContent = confirmadas;
+            document.getElementById('reservasHoy').textContent = reservasHoy;
+        }
+        
+        function filterReservas() {
+            const estadoFilter = document.getElementById('filtroEstado').value;
+            const fechaFilter = document.getElementById('filtroFecha').value;
+            const mesaFilter = document.getElementById('filtroMesa').value;
+            
+            let reservasFiltradas = [...allReservas];
+            
+            if (estadoFilter) {
+                reservasFiltradas = reservasFiltradas.filter(r => r.estado === estadoFilter);
+            }
+            
+            if (fechaFilter) {
+                reservasFiltradas = reservasFiltradas.filter(r => r.fecha === fechaFilter);
+            }
+            
+            if (mesaFilter) {
+                reservasFiltradas = reservasFiltradas.filter(r => r.mesa_id == mesaFilter);
+            }
+            
+            displayReservas(reservasFiltradas);
+            
+            const table = document.getElementById('reservasTable');
+            const noReservas = document.getElementById('noReservas');
+            
+            if (reservasFiltradas.length > 0) {
+                table.style.display = 'table';
+                noReservas.style.display = 'none';
+            } else {
+                table.style.display = 'none';
+                noReservas.innerHTML = '<p>No se encontraron reservas con los filtros aplicados</p>';
+                noReservas.style.display = 'block';
+            }
+        }
+        
+        function clearFilters() {
+            document.getElementById('filtroEstado').value = '';
+            document.getElementById('filtroFecha').value = '';
+            document.getElementById('filtroMesa').value = '';
+            
+            displayReservas(allReservas);
+            
+            const table = document.getElementById('reservasTable');
+            const noReservas = document.getElementById('noReservas');
+            
+            if (allReservas.length > 0) {
+                table.style.display = 'table';
+                noReservas.style.display = 'none';
+            } else {
+                table.style.display = 'none';
+                noReservas.innerHTML = '<p>No hay reservas registradas</p><p style="color: #999; font-size: 14px; margin-top: 10px;">Las reservas aparecerán aquí cuando los clientes las realicen</p>';
+                noReservas.style.display = 'block';
+            }
+        }
+        
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = `message ${type}`;
+            message.style.display = 'block';
+            
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 5000);
+        }
+        
+        function refreshReservas() {
+            loadReservas();
+        }
+        
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>
