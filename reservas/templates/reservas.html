@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reservas de Mesas</title>
+    <link rel="stylesheet" href="{{ url_for('reservas.static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sistema de Reservas de Mesas</h1>
+            <p>Selecciona fecha y hora para ver las mesas disponibles</p>
+            <p style="color: #dca735; font-weight: bold; margin-top: 10px;">Las reservas solo se pueden hacer entre 8:00 am y 9:00 pm.</p>
+        </header>
+        
+        <div class="reservation-form">
+            <div class="form-group">
+                <label for="reservation-date">Fecha de reserva:</label>
+                <input type="date" id="reservation-date" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="reservation-time">Hora de reserva:</label>
+                <input type="time" id="reservation-time" min="08:00" max="21:00" step="1800" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="people">Número de personas:</label>
+                <input type="number" id="people" min="1" max="20" required>
+            </div>
+            
+            <button id="check-availability">Ver mesas disponibles</button>
+            
+            <div id="error-message" class="error-message hidden"></div>
+        </div>
+        
+        <div id="tables-section" class="hidden">
+            <h2>Mesas disponibles</h2>
+            <p>Selecciona una mesa para reservar</p>
+            
+            <div id="tables-container" class="tables-container">
+                <!-- Las mesas se cargarán aquí dinámicamente -->
+            </div>
+        </div>
+        
+        <div id="reservation-details" class="reservation-details hidden">
+            <h2>Confirmar reserva</h2>
+            <p>Mesa <span id="selected-table-number"></span> - <span id="selected-time-slot"></span></p>
+            <p>Para <span id="selected-people"></span> personas</p>
+            
+            <div class="form-group">
+                <label for="phone">Número de teléfono:</label>
+                <input type="number" id="phone">
+            </div>
+            
+            <button id="confirm-reservation">Confirmar reserva</button>
+            <button id="cancel-selection">Cancelar</button>
+            
+            <div id="reservation-message" class="hidden"></div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('reservas.static', filename='scripts.js') }}"></script>
+</body>
+</html>
