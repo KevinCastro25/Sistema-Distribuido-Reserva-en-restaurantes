@@ -2,111 +2,35 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Autenticación Restaurante</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f9;
-      display: flex;
-      height: 100vh;
-      justify-content: center;
-      align-items: center;
-    }
-    .container {
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      width: 300px;
-      text-align: center;
-    }
-    input {
-      width: 90%;
-      padding: 8px;
-      margin: 10px 0;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 10px;
-      width: 100%;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    #message {
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      color: #333;
-    }
-  </style>
+  <title>Reservas - Autenticación</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
   <div class="container">
-    <h2>Iniciar sesión</h2>
-    <input type="text" id="nombre" placeholder="Nombre (solo si te registras)">
-    <input type="email" id="email" placeholder="Correo electrónico" required>
-    <input type="password" id="password" placeholder="Contraseña" required>
-    <button onclick="login()">Entrar</button>
-    <p id="message"></p>
+    
+    <!-- Caja de Login -->
+    <div class="box">
+      <h2>Iniciar Sesión</h2>
+      <form id="loginForm">
+        <input type="email" id="loginEmail" placeholder="Correo electrónico" required>
+        <input type="password" id="loginPassword" placeholder="Contraseña" required>
+        <button type="submit">Ingresar</button>
+        <button type="button" class="admin-btn" onclick="redirigirAdmin()">Entrar como Administrador</button>
+      </form>
+    </div>
+    
+    <!-- Caja de Registro -->
+    <div class="box" style="background-color:#f9f9f9;">
+      <h2>Registro</h2>
+      <form id="registerForm">
+        <input type="text" id="regNombre" placeholder="Nombre completo" required>
+        <input type="email" id="regEmail" placeholder="Correo electrónico" required>
+        <input type="password" id="regPassword" placeholder="Contraseña" required>
+        <button type="submit">Registrarse</button>
+      </form>
+    </div>
+
   </div>
-
-  <script>
-    const API_URL = "http://127.0.0.1:5000";
-
-    async function login() {
-      const nombre = document.getElementById("nombre").value;
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const message = document.getElementById("message");
-
-      if (!email || !password) {
-        message.textContent = "Correo y contraseña son obligatorios";
-        return;
-      }
-
-      try {
-        // 1. Intentar login
-        let res = await fetch(`${API_URL}/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password })
-        });
-
-        if (res.ok) {
-          let data = await res.json();
-          localStorage.setItem("token", data.token);
-          message.textContent = "Login exitoso. Token guardado.";
-        } else if (res.status === 401) {
-          // 2. Si no existe → registrarlo
-          message.textContent = "Usuario no encontrado. Creando cuenta...";
-          let reg = await fetch(`${API_URL}/register`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ nombre: nombre || "Invitado", email, password })
-          });
-
-          if (reg.ok) {
-            message.textContent = "Usuario registrado. Intenta iniciar sesión de nuevo.";
-          } else {
-            let err = await reg.json();
-            message.textContent = "Error al registrar: " + err.message;
-          }
-        } else {
-          let err = await res.json();
-          message.textContent = "Error: " + err.message;
-        }
-      } catch (error) {
-        console.error(error);
-        message.textContent = "Error de conexión con el servidor";
-      }
-    }
-  </script>
+  <script src="{{ url_for('static', filename='scripts.js') }}"></script>
 </body>
 </html>
