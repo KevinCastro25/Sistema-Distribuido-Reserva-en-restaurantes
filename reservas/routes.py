@@ -6,7 +6,7 @@ from models import db, Cliente, Mesa, Reserva   # importa de models.py global
 # -------------------
 # ENDPOINTS CLIENTES
 # -------------------
-@reservas_bp.route("/api/clientes", methods=["POST"])
+@reservas_bp.route("/clientes", methods=["POST"])
 def crear_cliente():
     try:
         data = request.get_json()
@@ -39,7 +39,7 @@ def crear_cliente():
 # -------------------
 # ENDPOINTS MESAS
 # -------------------
-@reservas_bp.route("/api/mesas", methods=["GET"])
+@reservas_bp.route("/mesas", methods=["GET"])
 def obtener_mesas():
     try:
         mesas = Mesa.query.all()
@@ -56,7 +56,7 @@ def obtener_mesas():
 # -------------------
 # ENDPOINTS RESERVAS
 # -------------------
-@reservas_bp.route("/api/reservas", methods=["POST"])
+@reservas_bp.route("/reservas", methods=["POST"])
 def crear_reserva():
     try:
         data = request.get_json()
@@ -120,7 +120,7 @@ def crear_reserva():
         return jsonify({"message": "Error al crear reserva", "error": str(e)}), 500
 
 
-@reservas_bp.route("/api/reservas", methods=["GET"])
+@reservas_bp.route("/reservas", methods=["GET"])
 def obtener_reservas():
     try:
         email = request.args.get('email')

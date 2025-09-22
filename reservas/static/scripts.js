@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function checkDatabaseAvailability(date, time, people) {
     try {
         // Obtener todas las mesas
-        const response = await fetch('http://127.0.0.1:5000/api/mesas');
+        const response = await fetch('http://127.0.0.1:5000/reservas/mesas');
         if (!response.ok) {
             showError('Error al consultar las mesas.');
             return;
@@ -91,7 +91,7 @@ async function checkDatabaseAvailability(date, time, people) {
         const mesas = await response.json();
 
         // Obtener reservas para la fecha y hora seleccionadas
-        const reservasResp = await fetch(`http://127.0.0.1:5000/api/reservas?fecha=${date}&hora=${time}`);
+        const reservasResp = await fetch(`http://127.0.0.1:5000/reservas/reservas?fecha=${date}&hora=${time}`);
         let reservas = [];
         if (reservasResp.ok) {
             reservas = await reservasResp.json();
@@ -223,7 +223,7 @@ function displayTables(tables) {
             async function saveReservationToDatabase() {
                 try {
                     const telefono = phoneInput.value;
-                    const response = await fetch('http://127.0.0.1:5000/api/reservas', {
+                    const response = await fetch('http://127.0.0.1:5000/reservas/reservas', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
