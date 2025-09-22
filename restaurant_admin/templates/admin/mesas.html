@@ -97,6 +97,20 @@
             margin-bottom: 10px;
         }
         
+        .admin-header p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .admin-note {
+            background: #e3f2fd;
+            border: 1px solid #1976d2;
+            color: #1565c0;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -201,7 +215,7 @@
         }
         
         .mesa-estado {
-            padding: 4px 12px;
+            padding: 6px 12px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
@@ -232,101 +246,52 @@
             color: #666;
         }
         
+        .mesa-info strong {
+            color: #333;
+        }
+        
         .mesa-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
+            flex-wrap: wrap;
         }
         
         .btn-small {
-            padding: 6px 12px;
+            padding: 8px 14px;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             font-size: 12px;
             cursor: pointer;
             transition: all 0.3s;
+            font-weight: 600;
         }
         
-        .btn-edit {
-            background: #2196f3;
+        .btn-disponible {
+            background: #4caf50;
             color: white;
         }
         
-        .btn-edit:hover {
-            background: #1976d2;
+        .btn-disponible:hover {
+            background: #45a049;
         }
         
-        .btn-delete {
-            background: #f44336;
-            color: white;
-        }
-        
-        .btn-delete:hover {
-            background: #d32f2f;
-        }
-        
-        .btn-status {
+        .btn-ocupada {
             background: #ff9800;
             color: white;
         }
         
-        .btn-status:hover {
+        .btn-ocupada:hover {
             background: #f57c00;
         }
         
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
+        .btn-mantenimiento {
+            background: #f44336;
+            color: white;
         }
         
-        .modal-content {
-            background-color: white;
-            margin: 5% auto;
-            padding: 30px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
-            position: relative;
-        }
-        
-        .close {
-            position: absolute;
-            right: 15px;
-            top: 15px;
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .close:hover {
-            color: #333;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
-        }
-        
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
+        .btn-mantenimiento:hover {
+            background: #d32f2f;
         }
         
         .loading {
@@ -353,12 +318,36 @@
             color: #c62828;
             border: 1px solid #f44336;
         }
+        
+        .no-mesas {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .mesas-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .nav-menu {
+                gap: 10px;
+            }
+            
+            .container {
+                padding: 0 10px;
+            }
+        }
     </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="navbar-content">
-            <h1>Gestión de Mesas - Restaurante</h1>
+            <h1>Panel Admin - Mesas</h1>
             <div class="nav-menu">
                 <a href="/admin">Usuarios</a>
                 <a href="/admin/mesas" class="active">Mesas</a>
@@ -374,7 +363,10 @@
     <div class="container">
         <div class="admin-header">
             <h2>Gestión de Mesas</h2>
-            <p>Administra las mesas del restaurante</p>
+            <p>Administra el estado y disponibilidad de las mesas del restaurante</p>
+            <div class="admin-note">
+                <strong>Nota:</strong> Solo puedes cambiar el estado de las mesas. La creación y eliminación de mesas se maneja desde otros módulos del sistema.
+            </div>
         </div>
         
         <div class="stats">
@@ -398,11 +390,8 @@
         
         <div class="mesas-section">
             <div class="section-header">
-                <h3>Mesas del Restaurante</h3>
-                <div>
-                    <button class="btn-primary" onclick="refreshMesas()">Actualizar</button>
-                    <button class="btn-primary" onclick="showCreateModal()">Nueva Mesa</button>
-                </div>
+                <h3>Estado de Mesas</h3>
+                <button class="btn-primary" onclick="refreshMesas()">Actualizar</button>
             </div>
             
             <div id="message" class="message"></div>
@@ -414,57 +403,17 @@
             <div class="mesas-grid" id="mesasGrid">
                 <!-- Las mesas se cargarán aquí dinámicamente -->
             </div>
-        </div>
-    </div>
-    
-    <!-- Modal para crear/editar mesa -->
-    <div id="mesaModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2 id="modalTitle">Nueva Mesa</h2>
             
-            <form id="mesaForm">
-                <div class="form-group">
-                    <label for="numero">Número de Mesa</label>
-                    <input type="number" id="numero" name="numero" required min="1">
-                </div>
-                
-                <div class="form-group">
-                    <label for="capacidad">Capacidad (personas)</label>
-                    <input type="number" id="capacidad" name="capacidad" required min="1" max="20">
-                </div>
-                
-                <div class="form-group">
-                    <label for="ubicacion">Ubicación</label>
-                    <select id="ubicacion" name="ubicacion">
-                        <option value="interior">Interior</option>
-                        <option value="terraza">Terraza</option>
-                        <option value="ventana">Ventana</option>
-                        <option value="privado">Área Privada</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="estado">Estado</label>
-                    <select id="estado" name="estado">
-                        <option value="disponible">Disponible</option>
-                        <option value="ocupada">Ocupada</option>
-                        <option value="mantenimiento">Mantenimiento</option>
-                    </select>
-                </div>
-                
-                <div style="text-align: center; margin-top: 30px;">
-                    <button type="button" onclick="closeModal()" style="background: #ccc; color: #333; padding: 10px 20px; border: none; border-radius: 5px; margin-right: 10px; cursor: pointer;">Cancelar</button>
-                    <button type="submit" class="btn-primary">Guardar Mesa</button>
-                </div>
-            </form>
+            <div id="noMesas" class="no-mesas" style="display: none;">
+                <p>No hay mesas registradas en el sistema</p>
+                <p style="color: #999; font-size: 14px; margin-top: 10px;">Las mesas son creadas desde otros módulos del sistema</p>
+            </div>
         </div>
     </div>
     
     <script>
         const API_URL = 'http://127.0.0.1:5000/api';
         let currentUser = null;
-        let editingMesaId = null;
         
         // Verificar autenticación al cargar
         document.addEventListener('DOMContentLoaded', function() {
@@ -497,10 +446,12 @@
             const token = localStorage.getItem('token');
             const loading = document.getElementById('loading');
             const grid = document.getElementById('mesasGrid');
+            const noMesas = document.getElementById('noMesas');
             const message = document.getElementById('message');
             
             loading.style.display = 'block';
             grid.innerHTML = '';
+            noMesas.style.display = 'none';
             message.style.display = 'none';
             
             try {
@@ -513,8 +464,12 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    displayMesas(data.mesas);
-                    updateStats(data.mesas);
+                    if (data.mesas.length > 0) {
+                        displayMesas(data.mesas);
+                        updateStats(data.mesas);
+                    } else {
+                        noMesas.style.display = 'block';
+                    }
                 } else {
                     showMessage(data.message, 'error');
                 }
@@ -530,116 +485,73 @@
         function displayMesas(mesas) {
             const grid = document.getElementById('mesasGrid');
             
-            if (mesas.length === 0) {
-                grid.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">No hay mesas registradas</p>';
-                return;
-            }
-            
             grid.innerHTML = mesas.map(mesa => `
                 <div class="mesa-card ${mesa.estado}">
                     <div class="mesa-header">
                         <div class="mesa-numero">Mesa ${mesa.numero}</div>
-                        <div class="mesa-estado ${mesa.estado}">${mesa.estado}</div>
+                        <div class="mesa-estado ${mesa.estado}">${getEstadoText(mesa.estado)}</div>
                     </div>
                     
                     <div class="mesa-info">
                         <p><strong>Capacidad:</strong> ${mesa.capacidad} personas</p>
                         <p><strong>Ubicación:</strong> ${mesa.ubicacion || 'No especificada'}</p>
-                        <p><strong>Reservas activas:</strong> ${mesa.reservas_activas || 0}</p>
+                        <p><strong>ID:</strong> ${mesa.id}</p>
                     </div>
                     
                     <div class="mesa-actions">
-                        <button class="btn-small btn-edit" onclick="editMesa(${mesa.id})">
-                            Editar
-                        </button>
-                        <button class="btn-small btn-status" onclick="toggleEstado(${mesa.id}, '${mesa.estado}')">
-                            ${mesa.estado === 'disponible' ? 'Ocupar' : 'Liberar'}
-                        </button>
-                        <button class="btn-small btn-delete" onclick="deleteMesa(${mesa.id}, ${mesa.numero})">
-                            Eliminar
-                        </button>
+                        ${getActionButtons(mesa)}
                     </div>
                 </div>
             `).join('');
         }
         
-        function updateStats(mesas) {
-            const total = mesas.length;
-            const disponibles = mesas.filter(m => m.estado === 'disponible').length;
-            const ocupadas = mesas.filter(m => m.estado === 'ocupada').length;
-            const mantenimiento = mesas.filter(m => m.estado === 'mantenimiento').length;
+        function getEstadoText(estado) {
+            const estados = {
+                'disponible': 'Disponible',
+                'ocupada': 'Ocupada',
+                'mantenimiento': 'Mantenimiento'
+            };
+            return estados[estado] || estado;
+        }
+        
+        function getActionButtons(mesa) {
+            let buttons = [];
             
-            document.getElementById('totalMesas').textContent = total;
-            document.getElementById('mesasDisponibles').textContent = disponibles;
-            document.getElementById('mesasOcupadas').textContent = ocupadas;
-            document.getElementById('mesasMantenimiento').textContent = mantenimiento;
-        }
-        
-        function showCreateModal() {
-            editingMesaId = null;
-            document.getElementById('modalTitle').textContent = 'Nueva Mesa';
-            document.getElementById('mesaForm').reset();
-            document.getElementById('mesaModal').style.display = 'block';
-        }
-        
-        function editMesa(mesaId) {
-            // En una implementación real, cargarías los datos de la mesa
-            editingMesaId = mesaId;
-            document.getElementById('modalTitle').textContent = 'Editar Mesa';
-            document.getElementById('mesaModal').style.display = 'block';
-            // Aquí cargarías los datos existentes de la mesa
-        }
-        
-        function closeModal() {
-            document.getElementById('mesaModal').style.display = 'none';
-            editingMesaId = null;
-        }
-        
-        document.getElementById('mesaForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+            if (mesa.estado !== 'disponible') {
+                buttons.push(`
+                    <button class="btn-small btn-disponible" onclick="cambiarEstado(${mesa.id}, 'disponible')">
+                        Marcar Disponible
+                    </button>
+                `);
+            }
             
-            const formData = new FormData(e.target);
-            const mesaData = {
-                numero: parseInt(formData.get('numero')),
-                capacidad: parseInt(formData.get('capacidad')),
-                ubicacion: formData.get('ubicacion'),
-                estado: formData.get('estado')
+            if (mesa.estado !== 'ocupada') {
+                buttons.push(`
+                    <button class="btn-small btn-ocupada" onclick="cambiarEstado(${mesa.id}, 'ocupada')">
+                        Marcar Ocupada
+                    </button>
+                `);
+            }
+            
+            if (mesa.estado !== 'mantenimiento') {
+                buttons.push(`
+                    <button class="btn-small btn-mantenimiento" onclick="cambiarEstado(${mesa.id}, 'mantenimiento')">
+                        Mantenimiento
+                    </button>
+                `);
+            }
+            
+            return buttons.join('');
+        }
+        
+        async function cambiarEstado(mesaId, nuevoEstado) {
+            const estadoTextos = {
+                'disponible': 'disponible',
+                'ocupada': 'ocupada',
+                'mantenimiento': 'en mantenimiento'
             };
             
-            const token = localStorage.getItem('token');
-            const isEditing = editingMesaId !== null;
-            const url = isEditing ? `${API_URL}/admin/mesas/${editingMesaId}` : `${API_URL}/admin/mesas`;
-            const method = isEditing ? 'PUT' : 'POST';
-            
-            try {
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(mesaData)
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showMessage(`Mesa ${isEditing ? 'actualizada' : 'creada'} exitosamente`, 'success');
-                    closeModal();
-                    loadMesas();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-                
-            } catch (error) {
-                alert('Error de conexión');
-            }
-        });
-        
-        async function toggleEstado(mesaId, estadoActual) {
-            const nuevoEstado = estadoActual === 'disponible' ? 'ocupada' : 'disponible';
-            
-            if (!confirm(`¿Cambiar estado de la mesa a "${nuevoEstado}"?`)) {
+            if (!confirm(`¿Marcar la mesa como ${estadoTextos[nuevoEstado]}?`)) {
                 return;
             }
             
@@ -660,44 +572,28 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    showMessage('Estado de mesa actualizado', 'success');
-                    loadMesas();
+                    showMessage(`Mesa marcada como ${estadoTextos[nuevoEstado]} exitosamente`, 'success');
+                    loadMesas(); // Recargar para actualizar la vista
                 } else {
                     showMessage('Error: ' + data.message, 'error');
                 }
                 
             } catch (error) {
+                console.error('Error:', error);
                 showMessage('Error de conexión', 'error');
             }
         }
         
-        async function deleteMesa(mesaId, numeroMesa) {
-            if (!confirm(`¿Estás seguro de eliminar la Mesa ${numeroMesa}?`)) {
-                return;
-            }
+        function updateStats(mesas) {
+            const total = mesas.length;
+            const disponibles = mesas.filter(m => m.estado === 'disponible').length;
+            const ocupadas = mesas.filter(m => m.estado === 'ocupada').length;
+            const mantenimiento = mesas.filter(m => m.estado === 'mantenimiento').length;
             
-            const token = localStorage.getItem('token');
-            
-            try {
-                const response = await fetch(`${API_URL}/admin/mesas/${mesaId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showMessage('Mesa eliminada exitosamente', 'success');
-                    loadMesas();
-                } else {
-                    showMessage('Error: ' + data.message, 'error');
-                }
-                
-            } catch (error) {
-                showMessage('Error de conexión', 'error');
-            }
+            document.getElementById('totalMesas').textContent = total;
+            document.getElementById('mesasDisponibles').textContent = disponibles;
+            document.getElementById('mesasOcupadas').textContent = ocupadas;
+            document.getElementById('mesasMantenimiento').textContent = mantenimiento;
         }
         
         function showMessage(text, type) {
@@ -719,14 +615,6 @@
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = '/';
-        }
-        
-        // Cerrar modal al hacer clic fuera de él
-        window.onclick = function(event) {
-            const modal = document.getElementById('mesaModal');
-            if (event.target === modal) {
-                closeModal();
-            }
         }
     </script>
 </body>
