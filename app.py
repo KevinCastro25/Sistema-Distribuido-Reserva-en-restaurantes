@@ -1,34 +1,42 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-import jwt
-import datetime
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
+from flask import render_template
+from datetime import timedelta
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://127.0.0.1:5500"}})
-
-app.config["SECRET_KEY"] = "miclaveultrasecreta"
+CORS(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///reservasRest.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["JWT_SECRET_KEY"] = "supersecretkey"
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 
 db = SQLAlchemy(app)
+jwt = JWTManager(app)
 
-# -------------------
-# MODELO USUARIO
-# -------------------
+# ------------------ MODELO ------------------
 class Usuario(db.Model):
-    __tablename__ = "Usuario"
     id_Usuario = db.Column(db.Integer, primary_key=True)
     nombre_Usuario = db.Column(db.String(100), nullable=False)
     email_Usuario = db.Column(db.String(100), unique=True, nullable=False)
     password_Usuario = db.Column(db.String(200), nullable=False)
     rol = db.Column(db.Integer, default=0)
 
-# -------------------
-# ENDPOINTS
-# -------------------
+# ------------------ RUTAS ------------------
 
+# Index
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+# Dashboard
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
+
+# Registro
 @app.route("/register", methods=["POST"])
 def register():
     data = request.get_json()
@@ -36,11 +44,8 @@ def register():
     email = data.get("email")
     password = data.get("password")
 
-    if not nombre or not email or not password:
-        return jsonify({"message": "Faltan datos"}), 400
-
     if Usuario.query.filter_by(email_Usuario=email).first():
-        return jsonify({"message": "El correo ya está registrado"}), 400
+        return jsonify({"message": "El usuario ya existe"}), 400
 
     hashed_pw = generate_password_hash(password)
     nuevo_usuario = Usuario(
@@ -51,9 +56,9 @@ def register():
     db.session.add(nuevo_usuario)
     db.session.commit()
 
-    return jsonify({"message": "Usuario registrado con éxito"}), 201
+    return jsonify({"message": "Usuario creado con éxito"}), 201
 
-
+# Login
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
@@ -64,40 +69,23 @@ def login():
     if not usuario or not check_password_hash(usuario.password_Usuario, password):
         return jsonify({"message": "Credenciales inválidas"}), 401
 
-    token = jwt.encode(
-        {
-            "id_Usuario": usuario.id_Usuario,
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
-        },
-        app.config["SECRET_KEY"],
-        algorithm="HS256"
-    )
-    return jsonify({"token": token})
+    token = create_access_token(identity={"id": usuario.id_Usuario, "rol": usuario.rol})
+    return jsonify({"token": token}), 200
 
-
-@app.route("/perfil", methods=["GET"])
-def perfil():
-    token = request.headers.get("Authorization")
-    if not token:
-        return jsonify({"message": "Token faltante"}), 403
-
-    try:
-        token = token.split(" ")[1]  # formato: "Bearer <token>"
-        data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
-        usuario = Usuario.query.get(data["id_Usuario"])
-        if not usuario:
-            return jsonify({"message": "Usuario no encontrado"}), 404
-    except Exception as e:
-        return jsonify({"message": "Token inválido", "error": str(e)}), 403
+# Ruta protegida de back office (solo admins)
+@app.route("/admin", methods=["GET"])
+@jwt_required()
+def admin_dashboard():
+    identidad = get_jwt_identity()
+    if identidad["rol"] != "admin":
+        return jsonify({"message": "Acceso denegado. Solo admins."}), 403
 
     return jsonify({
-        "id": usuario.id_Usuario,
-        "nombre": usuario.nombre_Usuario,
-        "email": usuario.email_Usuario,
-        "rol": usuario.rol
-    })
+        "message": "Bienvenido al Back Office 👑",
+        "usuario": identidad
+    }), 200
 
-
+# ------------------ MAIN ------------------
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
