@@ -5,6 +5,9 @@ from extensions import db
 from models import Usuario
 from . import clientes_bp
 
+# Firebase Admin
+from firebase_admin import auth as firebase_auth
+
 # Vista principal (login/registro)
 @clientes_bp.route("/")
 def index():
@@ -32,7 +35,7 @@ def register():
 
     return jsonify({"message": "Usuario creado con éxito"}), 201
 
-# Login
+# Login normal
 @clientes_bp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
@@ -45,6 +48,40 @@ def login():
 
     token = create_access_token(identity={"id": usuario.id_Usuario, "rol": usuario.rol})
     return jsonify({"token": token}), 200
+
+# Login con Google
+@clientes_bp.route("/google-login", methods=["POST"])
+def google_login():
+    data = request.get_json()
+    token = data.get("token")
+
+    if not token:
+        return jsonify({"message": "Token no proporcionado"}), 400
+
+    try:
+        # Verificar token con Firebase
+        decoded_token = firebase_auth.verify_id_token(token)
+        email = decoded_token["email"]
+        nombre = decoded_token.get("name", "Usuario Google")
+
+        # Buscar si ya existe en la base de datos
+        usuario = Usuario.query.filter_by(email_Usuario=email).first()
+        if not usuario:
+            usuario = Usuario(
+                nombre_Usuario=nombre,
+                email_Usuario=email,
+                password_Usuario="",  # vacío porque viene de Google
+                rol=0
+            )
+            db.session.add(usuario)
+            db.session.commit()
+
+        # Emitir tu JWT propio
+        access_token = create_access_token(identity={"id": usuario.id_Usuario, "rol": usuario.rol})
+        return jsonify({"token": access_token}), 200
+
+    except Exception as e:
+        return jsonify({"message": f"Error verificando token: {str(e)}"}), 401
 
 # Dashboard simple del cliente
 @clientes_bp.route("/dashboard")
