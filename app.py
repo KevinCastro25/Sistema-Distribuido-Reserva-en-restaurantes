@@ -59,3 +59,13 @@ def create_app():
             print("✅ Usuario admin creado: admin@restaurant.com / admin123")
         crear_datos_iniciales()
     return app
+
+app = create_app()
+
+@app.route("/")
+def index():
+    return "Bienvenido al sistema de reservas de restaurantes."
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
+

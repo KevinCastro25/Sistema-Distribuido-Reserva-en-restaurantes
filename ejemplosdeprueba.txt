@@ -1,0 +1,5 @@
+http://127.0.0.1:5000/  "Programa principal"
+http://127.0.0.1:5001/  "Microservicio de clientes"
+http://127.0.0.1:5002/  "Microservicio de reservas"
+http://127.0.0.1:5003/  "Microservicio de admin"
+http://localhost:5002/consultar_cliente/1   "Comunicacion entre cliente y reservas"

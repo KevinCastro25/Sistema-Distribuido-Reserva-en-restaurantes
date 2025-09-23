@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    environment:
+      - FLASK_ENV=development
+    restart: unless-stopped
+
+  clientes_service:
+    build: ./clientes_service
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
+
+  reservas_service:
+    build: ./reservas_service
+    ports:
+      - "5002:5002"
+    restart: unless-stopped
+
+  admin_service:
+    build: ./admin_service
+    ports:
+      - "5003:5003"
+    restart: unless-stopped
