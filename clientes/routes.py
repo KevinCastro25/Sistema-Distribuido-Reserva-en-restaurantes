@@ -28,7 +28,8 @@ def register():
     nuevo_usuario = Usuario(
         nombre_Usuario=nombre,
         email_Usuario=email,
-        password_Usuario=hashed_pw
+        password_Usuario=hashed_pw,
+        password_is_hashed=True
     )
     db.session.add(nuevo_usuario)
     db.session.commit()
@@ -43,6 +44,10 @@ def login():
     password = data.get("password")
 
     usuario = Usuario.query.filter_by(email_Usuario=email).first()
+    print("DB Hash:", usuario.password_Usuario)
+    print("Password ingresada:", password)
+    print("Validación:", check_password_hash(usuario.password_Usuario, password))
+
     if not usuario or not check_password_hash(usuario.password_Usuario, password):
         return jsonify({"message": "Credenciales inválidas"}), 401
 

@@ -14,11 +14,14 @@ class Usuario(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
 
-    def __init__(self, nombre_Usuario, email_Usuario, password_Usuario, rol=0):
+    def __init__(self, nombre_Usuario, email_Usuario, password_Usuario, rol=0, password_is_hashed=False):
         """Constructor del usuario"""
         self.nombre_Usuario = nombre_Usuario
         self.email_Usuario = email_Usuario
-        self.password_Usuario = generate_password_hash(password_Usuario)
+        if password_is_hashed:
+            self.password_Usuario = password_Usuario
+        else:
+            self.password_Usuario = generate_password_hash(password_Usuario)
         self.rol = rol
 
     def check_password(self, password):
