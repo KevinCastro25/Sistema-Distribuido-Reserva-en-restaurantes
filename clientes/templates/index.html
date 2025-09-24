@@ -15,8 +15,12 @@
         <input type="email" id="loginEmail" placeholder="Correo electrónico" required>
         <input type="password" id="loginPassword" placeholder="Contraseña" required>
         <button type="submit">Ingresar</button>
-        <button type="button" class="admin-btn" onclick="redirigirAdmin()">Entrar como Administrador</button>
       </form>
+
+      <!-- Botón Google -->
+      <button type="button" id="googleLoginBtn" class="google-btn">
+        Iniciar sesión con Google
+      </button>
     </div>
     
     <!-- Caja de Registro -->
@@ -31,6 +35,12 @@
     </div>
 
   </div>
-  <script src="{{ url_for('clientes.static', filename='scripts.js') }}"></script>
+
+  <!-- Firebase SDK -->
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js"></script>
+
+  <!-- Tus scripts -->
+  <script type="module" src="{{ url_for('clientes.static', filename='scripts.js') }}"></script>
 </body>
 </html>

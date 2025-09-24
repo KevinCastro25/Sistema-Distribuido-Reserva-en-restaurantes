@@ -2,11 +2,12 @@ from flask import Flask
 from flask_cors import CORS
 from datetime import timedelta
 from extensions import db, jwt
-from models import Mesa, Usuario
+from models import Mesa
 from clientes import clientes_bp
 from reservas import reservas_bp
-from admin import admin_bp
-from werkzeug.security import generate_password_hash
+import firebase_admin
+from firebase_admin import credentials
+#from admin import admin_bp
 
 def create_app():
     app = Flask(__name__)
@@ -21,10 +22,15 @@ def create_app():
     db.init_app(app)
     jwt.init_app(app)
 
+    # 🔹 Inicializar Firebase Admin
+    cred = credentials.Certificate("firebase-key.json")
+    if not firebase_admin._apps:  # evitar inicializar dos veces
+        firebase_admin.initialize_app(cred)
+
     # Blueprints
     app.register_blueprint(clientes_bp, url_prefix="/clientes")
     app.register_blueprint(reservas_bp, url_prefix="/reservas")
-    app.register_blueprint(admin_bp, url_prefix="/admin")
+    #app.register_blueprint(admin_bp, url_prefix="/admin")
 
 
     def crear_datos_iniciales():
@@ -45,27 +51,5 @@ def create_app():
             print("Mesas creadas exitosamente")
     with app.app_context():
         db.create_all()
-        # Crear usuario admin por defecto si no existe
-        admin = Usuario.query.filter_by(email_Usuario='admin@restaurant.com').first()
-        if not admin:
-            admin_user = Usuario(
-                nombre_Usuario='Administrador',
-                email_Usuario='admin@restaurant.com',
-                password_Usuario=generate_password_hash('admin123'),
-                rol=2  # Superadmin
-            )
-            db.session.add(admin_user)
-            db.session.commit()
-            print("✅ Usuario admin creado: admin@restaurant.com / admin123")
         crear_datos_iniciales()
     return app
-
-app = create_app()
-
-@app.route("/")
-def index():
-    return "Bienvenido al sistema de reservas de restaurantes."
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
-

@@ -7,6 +7,8 @@ __pycache__/
 *.pyo
 *.pyd
 
+firebase-key.json
+
 # Archivos de IDE
 .vscode/
 .idea/
