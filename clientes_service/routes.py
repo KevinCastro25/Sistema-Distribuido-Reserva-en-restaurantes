@@ -10,7 +10,7 @@ def clientes_home():
 # Endpoint para obtener datos de un cliente por ID (ejemplo)
 @clientes_bp.route("/<int:cliente_id>", methods=["GET"])
 def get_cliente(cliente_id):
-    # Ejemplo de datos, en la práctica consultarías la base de datos
+    # Ejemplo de datos
     ejemplo_cliente = {
         1: {"id": 1, "nombre": "Juan", "email": "juan@email.com"},
         2: {"id": 2, "nombre": "Ana", "email": "ana@email.com"}

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clientes-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clientes
+  template:
+    metadata:
+      labels:
+        app: clientes
+    spec:
+      containers:
+      - name: clientes
+        image: kevincastro25/clientes_service:latest
+        ports:
+        - containerPort: 5001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clientes-service
+spec:
+  selector:
+    app: clientes
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001
+  type: NodePort
